@@ -1,28 +1,9 @@
 #import "cocos2d.h"
 
-//CLASS INTERFACE
-#ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
-@interface AppController : NSObject <UIApplicationDelegate>
-{
-	UIWindow *window_;
-	UIViewController *viewController_;
-}
+#import "BaseAppController.h"
+
+@interface AppController : BaseAppController
 @end
-
-#elif defined(__MAC_OS_X_VERSION_MAX_ALLOWED)
-@interface cocos2dmacAppDelegate : NSObject <NSApplicationDelegate>
-{
-	NSWindow	*window_;
-	MacGLView	*glView_;
-}
-
-@property (assign) IBOutlet NSWindow	*window;
-@property (assign) IBOutlet MacGLView	*glView;
-
-- (IBAction)toggleFullScreen:(id)sender;
-
-@end
-#endif // Mac
 
 @interface AtlasDemo: CCLayer
 {
@@ -89,7 +70,7 @@
     CCSprite *arrowsBar_;
     CCSprite *arrows_;
     CCMenuItemFont *lastSentenceItem_, *lastAlignmentItem_;
-    
+
     BOOL drag_;
 }
 @property (nonatomic,retain) CCLabelBMFont *label;
@@ -141,3 +122,12 @@
 }
 @end
 
+@interface BMFontOneAtlas : AtlasDemo
+{
+}
+@end
+
+@interface BMFontUnicode : AtlasDemo
+{
+}
+@end

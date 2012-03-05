@@ -13,30 +13,54 @@ cocos2d for iPhone 2.0 authors
 ------------------------------
 
 Lead Developer:
-	Ricardo Quesada (http://www.zynga.com)
+	Ricardo Quesada (http://www.cocos2d-iphone.org/)
 
 
 People/companies who were/are contributing code to cocos2d for iPhone (alphabetically ordered):
 
 * Atte Kotiranta (https://github.com/akotiranta)
 	EaseActions: Ease Actions works OK with floating point values
+	Improved Texture2D API
 
 * Brian Chapados (http://chapados.org/):
 	Made easier to port to cocos2d v2.x from v1.x by adding alpha testing shader, added missing CCSpriteFrameCache
+
+* Chere Loque:
+	Added support for NPOT texture in CCRenderTexture
+	Added image offset in CCLabelBMFont in order to share the same texture
 
 * CJ Hanson (myBuddyCJ) (http://www.hansoninteractive.com/):
 	TextureCache: Use blocks instead of CCCall actions to dispatch code
 	TextureCache: Uses a serial queue to protect access to the texture dictionary. No need to use @syncronize on CCTexture2D
 
-* Lam Pham (http://www.fancyratstudios.com/)
-	CCProgressTimer: Improved API 
-	CCProgressTimer: Works with Tint and opacity
-	Added Tint + opacity test cases for CCProgressTimer
+* Dmitry Kudryashov:
+	Director could be re-initialized. Patch.
 
+* Dusan Lazarevic (AKA crmagicxxx):
+	LabelBMFont y-offset work as expected on RetinaDisplay (patch).
+
+* Gene Peterson (http://zynga.com)
+	Dimension is a property on CCLabelTTF
+	
+* Giles Hammond:
+	iOS Director uses DisplayLink timestamp for more stable delta times
+
+* Goffredo Marocchi (https://github.com/panajev):
+	Original author/mentor of caching uniforms in CCGLProgram
+	
 * Justin Graham (http://www.zynga.com)
-	GLProgram: fixes in fragmentShaderLog
+	CCGLProgram: fixes in fragmentShaderLog
 	CCShaderCache: Added addProgram:forKey: method
 	CCArray: Fixed copyWithZone
+	
+* Karl Stenerud (http://www.mindsnacks.com/):
+	Author of ActionTargeted
+
+* Lam Pham (http://www.fancyratstudios.com/)
+	CCProgressTimer: Improved API
+	CCProgressTimer: Works with Tint and opacity
+	Added Tint + opacity test cases for CCProgressTimer
+	CCProgressTimer: Supports rotates SpriteFrames
 
 * manucorporat (manu.valladolid) (http://forzefield.com/):
 	Author of new Retina Display code:
@@ -45,32 +69,77 @@ People/companies who were/are contributing code to cocos2d for iPhone (alphabeti
 	Author of new MotionStreak code:
 		Much faster rendering. No need to use Ribbon
 
-* Mark Wei ( http://www.facebook.com/markwei ):
+* Mark Wei (http://www.facebook.com/markwei):
 	Added support for alignment in multiline in CCLabelBMFont objects
 	Author of alignment multiline test case
+	
+* mlilback:
+	Added KVO pattern for CCDirector#isPaused
 
+* Nicky Weber (https://github.com/nickyEnjoysWoogoo):
+	Added ccDrawFilledPoly to DrawingPrimitives
+
+* Plangworthy:
+	Music: Fixed issue when Background music looping was not respected on resume if playback was stopped
+	
 * Scott Lembcke (AKA slembcke) (http://chipmunk-physics.net/)
 	Mentor & contributor of new Physics + cocos2d integration via nodeToParentTransform
-	
+
 * Sergey Tikhonov (AKA haqu) (http://haqu.net)
-	Tests: Improved Shader test
+	Tests: Improved Shader test. Fixed memory leak in Guassian Blur test
+	Tests: Shader tests center the fragment shader effects on Mac
+	Director: On Mac, CC_DIRECTOR_INIT() centers the main window
+
+* TonicBom:
+	TileMap: TMX obtains poligon and polilines properties
+	
+* Viktor Lidholt (http://www.cocosbuilder.com)
+	Added setters/getters for fontName, fontSize, fntFile in LabelBMFont and LabelTTF
+	Added support for MainThread Mac Director
+	Particle can be resized in runtime
+	LabelTTF can be init without params
+	MenuItem: added setters for target:selctor, block and sprites
+	Node: zOrder property is readwrite
+	
+* zergyo:
+	Grid: Fixed memory leak when setIsTextureFlipped is used
 
 
 cocos2d for iPhone authors for v1.1
 -----------------------------------
 
 Lead Developers:
-	Ricardo Quesada (http://www.zynga.com)
 	Marco Tillemans (http://www.welcometothefabrik.com/)
+	Ricardo Quesada (http://www.cocos2d-iphone.org)
 
 
 Contributors (alphabetically ordered):
 
+* andy
+	fix for incorrect CCRepeat behavior
+	
+* akotiranta 
+	backported CCLabelBMFont implementation from 2.0 branch
+
+* Alexander Carter
+	Sprite: fixed possible opacity bug in setColor
+
+* Christoph Winkler (http://raketenbasis.de)
+	Word Wrap works on LabelTTF on Mac
+	bug fixes for failure to compile on 32-bit mac builds
+	created new drawPrimitives functions, ccDrawRect, ccDrawSolidRect and ccDrawSolidPoly.
+	
 * Jerrod Putman (http://www.tinytimgames.com)
 	Original author of ARC compatibility code
 	
+* jptsetung (http://www.bonuslevel.org/games/) 
+	Patch for CCSprite, premade hierarchies of sprites will be rendered correctly by a batchNode
+	
 * John Wordsworth ( http://www.johnwordsworth.com/ )
 	CCAnimationCache: Added animation data format. Can be loaded into the animation cache
+
+* Karl Stenerud (http://www.mindsnacks.com/):
+	Author of ActionTargeted
 
 * Marco Tillemans (AKA araker: http://www.welcometothefabrik.com/)
 	Texture2D: drawInRect / drawAtPoint disables color state
@@ -79,11 +148,20 @@ Contributors (alphabetically ordered):
 	Schedule: added support for delay and repeat
 	ESRenderer: don't recreate the renderer when it is not needed
 	Actions: Instant actions can be sequenceables
-	Actions: durtion is not divided by zero
-	Actions: Repeat & RepeatForever work as expectd
+	Actions: duration is not divided by zero
+	Actions: Repeat & RepeatForever work as expected
+	Co-author of animated particle system
 	Author of ParticleBatchNode node
 	Improved ESRenderer layoutSubview
 	Improved Debug Drawing for Sprite batched node	
+	EAGLView destroys and recreates all OpenGL buffers correctly
+	TileMap: flipped tiles can be changed during runtime
+
+* Martin 
+	Co-author of animated particle system
+
+* Nicky Weber (https://github.com/nickyEnjoysWoogoo):
+	Added convenience function to create a ccColor4F from color components	
 
 * podhrask...@gmail.com
 	TouchDispatcher: correctly handles addition and removal of handlers when being inside a touch handler. patch
@@ -94,7 +172,17 @@ Contributors (alphabetically ordered):
 * Scott Lembcke (AKA slembcke) (http://chipmunk-physics.net/)
 	Improved ARC compatiblity code
 
-* slycrel (http://geopherlite.blogspot.com/)
+* Sergey Tikhonov (AKA haqu) (http://haqu.net)
+	Removed warning in CCMenuItem
+
+* slycrel (http://folderapp.blogspot.com/)
+	TMX Map: fixed crash when multiple layers and tiles were used with rotation
+
+* Shakthi:
+	Added CCNode#onExitTransitionDidStart method
+	Fixed fading background music issue
+
+* slycrel (http://folderapp.blogspot.com/)
 	Added support for flipped tiles in TMX maps. Also added test case
 	Added support for in-memory TMX map creation. Also added a test case
 
@@ -106,7 +194,7 @@ cocos2d for iPhone authors for v1.0
 -----------------------------------
 
 Lead Developer:
-	Ricardo Quesada (http://www.zynga.com)
+	Ricardo Quesada (http://www.cocos2d-iphone.org/)
 
 Developers:
 	Valentin Milea
@@ -143,7 +231,7 @@ People/companies who were/are contributing code to cocos2d for iPhone (alphabeti
 		Repeat action works OK
 	* Barney Mattox:
 		templates use rfc1034identifier patch.
-		XCode doxygen script runs with spaces in subdirectories.	
+		XCode doxygen script runs with spaces in subdirectories.
 	* Booyah (http://booyah.com/):
 		Added support for GL sharegroup in EAGLView
 	* Brad Parks:
@@ -213,6 +301,8 @@ People/companies who were/are contributing code to cocos2d for iPhone (alphabeti
 		actions uses FLT_EPSILON macro. patch.
 	* effervens:
 		patches for Director
+	* effervecents (https://github.com/effervescent):
+		Sprite: Skew is performed after scale
 	* Ernesto Corvi & On-Core (http://www.on-core.com/):
 		author of TGA RLE support
 		patches for TextureMgr
@@ -345,7 +435,7 @@ People/companies who were/are contributing code to cocos2d for iPhone (alphabeti
 			ccpRotateByAngle, ccpLineIntersect
 		Author of sample "CocosDenshion - Fancy Rat Metering Demo"
 		Added BarMid to CCProgressTo
-		CCProgressTimer: Improved API 
+		CCProgressTimer: Improved API
 		CCProgressTimer: Works with Tint and opacity
 		Added Tint + opacity test cases for CCProgressTimer
 	* Leonardo Kasperavičius (http://www.instantgames.com.br/):
@@ -375,8 +465,8 @@ People/companies who were/are contributing code to cocos2d for iPhone (alphabeti
 		Author of FontTest
 		PointParticleSystem doesn't draw if there are no particles patch
 		Actions: cleaner way to start/stop actions patches
-		author of CCPropertyAction 
-	* magicyu (crmagicxxx):
+		author of CCPropertyAction
+	* Dusan Lazarevic (AKA crmagicxxx):
 		CocosLive client supports ranking request patch
 	* manucorporat (manu.valladolid) (http://forzefield.com/):
 		added isPaused property to Director
@@ -384,7 +474,7 @@ People/companies who were/are contributing code to cocos2d for iPhone (alphabeti
 		MenuItemLabel: color is saved when item is disabled
 		Update status in CocosDenshion patch
 		Added CocosNode#boundingBox method
-		Added debuging draw method to AtlasSpriteManager 
+		Added debuging draw method to AtlasSpriteManager
 		ColorLayer supports blend protocol patch
 		performance improvement on particles
 		TextureAtlas uses VBO instead of vertex array list patch
@@ -496,7 +586,7 @@ People/companies who were/are contributing code to cocos2d for iPhone (alphabeti
 	* Piero Tofy (http://indieappsalliance.org):
 		Web: Author of the scraper script used to parse games data in the cocos2d site
 	* Pieter van de Bruggen
-		Author of Gradient layer  
+		Author of Gradient layer
     * podhraski.tomislav:
         Mac Director compiles when slow FPS are selected. patch.
 	* psionic81:

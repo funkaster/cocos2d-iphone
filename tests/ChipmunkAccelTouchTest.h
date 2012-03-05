@@ -4,25 +4,22 @@
 
 #import "cocos2d.h"
 #import "chipmunk.h"
+#import "BaseAppController.h"
 
-//CLASS INTERFACE
-@interface AppController : NSObject <UIApplicationDelegate>
-{
-	UIWindow	*window_;
-	UIViewController *viewController_;
-}
+
+@interface AppController : BaseAppController
 @end
 
 @interface MainLayer : CCLayer
 {
 	CCTexture2D *spriteTexture_; // weak ref
-	
+
 	cpSpace *space_; // strong ref
-	
+
 	cpShape *walls_[4];
 }
 @end
-	
+
 
 @interface PhysicsSprite : CCSprite
 {

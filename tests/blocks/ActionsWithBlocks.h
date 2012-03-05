@@ -1,16 +1,10 @@
 
 // When you import this file, you import all the cocos2d classes
 #import "cocos2d.h"
+#import "BaseAppController.h"
 
 // Application Delegate class
-@interface AppController : NSObject <UIApplicationDelegate>
-{
-	// main UIWindow
-	// The OpenGL view will be a attached to this UIWindow
-    UIWindow *window_;
-	UIViewController *viewController_;
-}
-
+@interface AppController : BaseAppController
 @end
 
 // HelloActions Layer

@@ -5,18 +5,13 @@
 #import "cocos2d.h"
 #import "Box2D.h"
 #import "GLES-Render.h"
+#import "BaseAppController.h"
 
-
-//CLASS INTERFACE
-@interface AppController : NSObject <UIApplicationDelegate>
-{
-	UIWindow	*window_;
-	UIViewController *viewController_;
-}
+@interface AppController : BaseAppController
 @end
 
 @interface MainLayer : CCLayer {
-	
+
 	CCTexture2D *spriteTexture_;	// weak ref
 	b2World* world;					// strong ref
 	GLESDebugDraw *m_debugDraw;		// strong ref

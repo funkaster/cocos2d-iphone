@@ -10,10 +10,6 @@
 // local import
 #import "ActionManagerTest.h"
 
-#ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
-#import "RootViewController.h"
-#endif
-
 enum {
 	kTagNode,
 	kTagGrossini,
@@ -37,7 +33,7 @@ static NSString *transitions[] = {
 
 Class nextAction()
 {
-	
+
 	sceneIdx++;
 	sceneIdx = sceneIdx % ( sizeof(transitions) / sizeof(transitions[0]) );
 	NSString *r = transitions[sceneIdx];
@@ -50,8 +46,8 @@ Class backAction()
 	sceneIdx--;
 	int total = ( sizeof(transitions) / sizeof(transitions[0]) );
 	if( sceneIdx < 0 )
-		sceneIdx += total;	
-	
+		sceneIdx += total;
+
 	NSString *r = transitions[sceneIdx];
 	Class c = NSClassFromString(r);
 	return c;
@@ -73,24 +69,24 @@ Class restartAction()
 	if( (self=[super init]) ) {
 
 		CGSize s = [[CCDirector sharedDirector] winSize];
-			
+
 		CCLabelTTF* label = [CCLabelTTF labelWithString:[self title] fontName:@"Arial" fontSize:32];
 		[self addChild: label z:1];
 		[label setPosition: ccp(s.width/2, s.height-50)];
-		
+
 		NSString *subtitle = [self subtitle];
 		if( subtitle ) {
 			CCLabelTTF* l = [CCLabelTTF labelWithString:subtitle fontName:@"Thonburi" fontSize:16];
 			[self addChild:l z:1];
 			[l setPosition:ccp(s.width/2, s.height-80)];
-		}	
-		
-		CCMenuItemImage *item1 = [CCMenuItemImage itemFromNormalImage:@"b1.png" selectedImage:@"b2.png" target:self selector:@selector(backCallback:)];
-		CCMenuItemImage *item2 = [CCMenuItemImage itemFromNormalImage:@"r1.png" selectedImage:@"r2.png" target:self selector:@selector(restartCallback:)];
-		CCMenuItemImage *item3 = [CCMenuItemImage itemFromNormalImage:@"f1.png" selectedImage:@"f2.png" target:self selector:@selector(nextCallback:)];
-		
+		}
+
+		CCMenuItemImage *item1 = [CCMenuItemImage itemWithNormalImage:@"b1.png" selectedImage:@"b2.png" target:self selector:@selector(backCallback:)];
+		CCMenuItemImage *item2 = [CCMenuItemImage itemWithNormalImage:@"r1.png" selectedImage:@"r2.png" target:self selector:@selector(restartCallback:)];
+		CCMenuItemImage *item3 = [CCMenuItemImage itemWithNormalImage:@"f1.png" selectedImage:@"f2.png" target:self selector:@selector(nextCallback:)];
+
 		CCMenu *menu = [CCMenu menuWithItems:item1, item2, item3, nil];
-		
+
 		menu.position = CGPointZero;
 		item1.position = ccp( s.width/2 - 100,30);
 		item2.position = ccp( s.width/2, 30);
@@ -145,7 +141,7 @@ Class restartAction()
 -(id) init
 {
 	if( (self=[super init] )) {
-		
+
 
 		CCSprite *child = [CCSprite spriteWithFile:@"grossini.png"];
 		[child setPosition:ccp(200,200)];
@@ -158,7 +154,7 @@ Class restartAction()
 						  [CCFadeOut actionWithDuration:1.1f],
 						  nil]
 		];
-		
+
 		//After 1.5 second, self will be removed.
 		[self runAction:[CCSequence actions:
 						 [CCDelayTime actionWithDuration:1.4f],
@@ -166,15 +162,15 @@ Class restartAction()
 						 nil]
 		];
 	}
-	
+
 	return self;
-	
+
 }
 
 -(void) removeThis
 {
 	[parent_ removeChild:self cleanup:YES];
-	
+
 	[self nextCallback:self];
 }
 
@@ -191,12 +187,12 @@ Class restartAction()
 -(id) init
 {
 	if( (self=[super init] )) {
-		
+
 		CCSprite *grossini = [CCSprite spriteWithFile:@"grossini.png"];
 		[self addChild:grossini];
 		[grossini setPosition:ccp(200,200)];
 
-		[grossini runAction: [CCSequence actions: 
+		[grossini runAction: [CCSequence actions:
 							  [CCMoveBy actionWithDuration:1
 												position:ccp(150,0)],
 							  [CCCallFuncN actionWithTarget:self
@@ -204,10 +200,10 @@ Class restartAction()
 							  nil]
 		];
 	}
-	
+
 	return self;
 }
-		
+
 - (void)bugMe:(CCNode *)node
 {
 	[node stopAllActions]; //After this stop next action not working, if remove this stop everything is working
@@ -238,10 +234,11 @@ Class restartAction()
 	CCSprite *grossini = [CCSprite spriteWithFile:@"grossini.png"];
 	[self addChild:grossini z:0 tag:kTagGrossini];
 	[grossini setPosition:ccp(200,200)];
-	
+
 	CCAction *action = [CCMoveBy actionWithDuration:1 position:ccp(150,0)];
-	
-	[[CCActionManager sharedManager] addAction:action target:grossini paused:YES];
+
+	CCDirector *director = [CCDirector sharedDirector];
+	[[director actionManager] addAction:action target:grossini paused:YES];
 
 	[self schedule:@selector(unpause:) interval:3];
 }
@@ -249,8 +246,11 @@ Class restartAction()
 -(void) unpause:(ccTime)dt
 {
 	[self unschedule:_cmd];
+
 	CCNode *node = [self getChildByTag:kTagGrossini];
-	[[CCActionManager sharedManager] resumeTarget:node];
+
+	CCDirector *director = [CCDirector sharedDirector];
+	[[director actionManager] resumeTarget:node];
 }
 
 -(NSString *) title
@@ -271,23 +271,23 @@ Class restartAction()
 -(id) init
 {
 	if( (self= [super init]) ) {
-	
-		CCMoveBy* move = [CCMoveBy actionWithDuration:2 
+
+		CCMoveBy* move = [CCMoveBy actionWithDuration:2
 											 position:ccp(200,0)];
-		
-		CCCallFunc* callback = [CCCallFunc actionWithTarget:self 
+
+		CCCallFunc* callback = [CCCallFunc actionWithTarget:self
 												   selector:@selector(stopAction:)];
-		
+
 		CCSequence* sequence = [CCSequence actions:move, callback, nil];
 		sequence.tag = kTagSequence;
-		
+
 		CCSprite *child = [CCSprite spriteWithFile:@"grossini.png"];
 		[child setPosition:ccp(200,200)];
 		[self addChild:child z:1 tag:kTagGrossini];
-		
+
 		[child runAction:sequence];
 	}
-	
+
 	return self;
 }
 
@@ -315,20 +315,21 @@ Class restartAction()
 -(void) onEnter
 {
 	[super onEnter];
-	
-	CGSize s = [[CCDirector sharedDirector] winSize];
+
+	CCDirector *director = [CCDirector sharedDirector];
+	CGSize s = [director winSize];
 
 	CCSprite *grossini = [CCSprite spriteWithFile:@"grossini.png"];
 	[self addChild:grossini z:0 tag:kTagGrossini];
-	
+
 	[grossini setPosition:ccp(s.width/2, s.height/2)];
 
 	// An action should be scheduled before calling pause, otherwise pause won't pause a non-existang target
 	[grossini runAction:[CCScaleBy actionWithDuration:2 scale:2]];
 
-	[[CCActionManager sharedManager] pauseTarget: grossini];
+	[[director actionManager] pauseTarget: grossini];
 	[grossini runAction:[CCRotateBy actionWithDuration:2 angle:360]];
-	
+
 	[self schedule:@selector(resumeGrossini:) interval:3];
 }
 
@@ -345,9 +346,11 @@ Class restartAction()
 -(void) resumeGrossini:(ccTime)dt
 {
 	[self unschedule:_cmd];
-	
+
+	CCDirector *director = [CCDirector sharedDirector];
+
 	id grossini = [self getChildByTag:kTagGrossini];
-	[[CCActionManager sharedManager] resumeTarget:grossini];
+	[[director actionManager] resumeTarget:grossini];
 }
 @end
 
@@ -358,48 +361,18 @@ Class restartAction()
 // CLASS IMPLEMENTATIONS
 @implementation AppController
 
-- (void) applicationDidFinishLaunching:(UIApplication*)application
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-	// Init the window
-	window_ = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-	
-	// before creating any layer, set the landscape mode
-	CCDirector *director = [CCDirector sharedDirector];
-	
-	// set FPS at 60
-	[director setAnimationInterval:1.0/60];
-	
-	// Display FPS: yes
-	[director setDisplayStats:kCCDirectorStatsFPS];
-	
-	// Create an EAGLView with a RGB8 color buffer, and a depth buffer of 24-bits
-	EAGLView *glView = [EAGLView viewWithFrame:[window_ bounds]
-								   pixelFormat:kEAGLColorFormatRGB565
-								   depthFormat:0];
-	
-	// attach the openglView to the director
-	[director setOpenGLView:glView];
-	
+
+	[super application:application didFinishLaunchingWithOptions:launchOptions];
+
 	// 2D projection
-	[director setProjection:kCCDirectorProjection2D];
-	
+	[director_ setProjection:kCCDirectorProjection2D];
+
 	// Enables High Res mode (Retina Display) on iPhone 4 and maintains low res on all other devices
-	if( ! [director enableRetinaDisplay:YES] )
+	if( ! [director_ enableRetinaDisplay:YES] )
 		CCLOG(@"Retina Display Not supported");
-	
-	// Init the View Controller
-	viewController_ = [[RootViewController alloc] initWithNibName:nil bundle:nil];
-	viewController_.wantsFullScreenLayout = YES;
-	
-	// make the OpenGLView a child of the view controller
-	[viewController_ setView:glView];
-	
-	// make the OpenGLView a child of the main window
-	[window_ addSubview:viewController_.view];
-	
-	// make main window visible
-	[window_ makeKeyAndVisible];	
-	
+
 	// When in iPad / RetinaDisplay mode, CCFileUtils will append the "-ipad" / "-hd" to all loaded files
 	// If the -ipad  / -hdfile is not found, it will load the non-suffixed version
 	[CCFileUtils setiPadSuffix:@"-ipad"];			// Default on iPad is "" (empty string)
@@ -407,55 +380,10 @@ Class restartAction()
 
 	CCScene *scene = [CCScene node];
 	[scene addChild: [nextAction() node]];
-			 
-	[director runWithScene: scene];
+
+	[director_ pushScene: scene];
+
+	return YES;
 }
 
-// getting a call, pause the game
--(void) applicationWillResignActive:(UIApplication *)application
-{
-	[[CCDirector sharedDirector] pause];
-}
-
-// call got rejected
--(void) applicationDidBecomeActive:(UIApplication *)application
-{
-	[[CCDirector sharedDirector] resume];
-}
-
-// application will be killed
-- (void)applicationWillTerminate:(UIApplication *)application
-{	
-	CC_DIRECTOR_END();
-}
-
-// sent to background
--(void) applicationDidEnterBackground:(UIApplication*)application
-{
-	[[CCDirector sharedDirector] stopAnimation];
-}
-
-// sent to foreground
--(void) applicationWillEnterForeground:(UIApplication*)application
-{
-	[[CCDirector sharedDirector] startAnimation];
-}
-
-// purge memroy
-- (void)applicationDidReceiveMemoryWarning:(UIApplication *)application
-{
-	[[CCDirector sharedDirector] purgeCachedData];
-}
-
-// next delta time will be zero
--(void) applicationSignificantTimeChange:(UIApplication *)application
-{
-	[[CCDirector sharedDirector] setNextDeltaTimeZero:YES];
-}
-
-- (void) dealloc
-{
-	[window_ release];
-	[super dealloc];
-}
 @end

@@ -10,12 +10,11 @@
 // local import
 #import "ShaderTest.h"
 
-#ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
-#import "RootViewController.h"
-#endif
-
 static int sceneIdx=-1;
 static NSString *transitions[] = {
+	
+	@"ShaderRetroEffect",
+	
 	@"ShaderMonjori",
 	@"ShaderMandelbrot",
 	@"ShaderJulia",
@@ -23,11 +22,12 @@ static NSString *transitions[] = {
 	@"ShaderFlower",
 	@"ShaderPlasma",
 	@"ShaderBlur",
+	@"ShaderRetroEffect",
 };
 
 Class nextAction()
 {
-	
+
 	sceneIdx++;
 	sceneIdx = sceneIdx % ( sizeof(transitions) / sizeof(transitions[0]) );
 	NSString *r = transitions[sceneIdx];
@@ -40,8 +40,8 @@ Class backAction()
 	sceneIdx--;
 	int total = ( sizeof(transitions) / sizeof(transitions[0]) );
 	if( sceneIdx < 0 )
-		sceneIdx += total;	
-	
+		sceneIdx += total;
+
 	NSString *r = transitions[sceneIdx];
 	Class c = NSClassFromString(r);
 	return c;
@@ -66,26 +66,26 @@ Class restartAction()
 		[self addChild: label z:1];
 		[label setPosition: ccp(s.width/2, s.height-50)];
 		[label setColor:ccRED];
-		
+
 		NSString *subtitle = [self subtitle];
 		if( subtitle ) {
 			CCLabelTTF *l = [CCLabelTTF labelWithString:subtitle fontName:@"Thonburi" fontSize:16];
 			[self addChild:l z:1];
 			[l setPosition:ccp(s.width/2, s.height-80)];
 		}
-		
-		CCMenuItemImage *item1 = [CCMenuItemImage itemFromNormalImage:@"b1.png" selectedImage:@"b2.png" target:self selector:@selector(backCallback:)];
-		CCMenuItemImage *item2 = [CCMenuItemImage itemFromNormalImage:@"r1.png" selectedImage:@"r2.png" target:self selector:@selector(restartCallback:)];
-		CCMenuItemImage *item3 = [CCMenuItemImage itemFromNormalImage:@"f1.png" selectedImage:@"f2.png" target:self selector:@selector(nextCallback:)];
-		
+
+		CCMenuItemImage *item1 = [CCMenuItemImage itemWithNormalImage:@"b1.png" selectedImage:@"b2.png" target:self selector:@selector(backCallback:)];
+		CCMenuItemImage *item2 = [CCMenuItemImage itemWithNormalImage:@"r1.png" selectedImage:@"r2.png" target:self selector:@selector(restartCallback:)];
+		CCMenuItemImage *item3 = [CCMenuItemImage itemWithNormalImage:@"f1.png" selectedImage:@"f2.png" target:self selector:@selector(nextCallback:)];
+
 		CCMenu *menu = [CCMenu menuWithItems:item1, item2, item3, nil];
-		
+
 		menu.position = CGPointZero;
 		item1.position = ccp( s.width/2 - 100,30);
 		item2.position = ccp( s.width/2, 30);
 		item3.position = ccp( s.width/2 + 100,30);
-		[self addChild: menu z:1];	
-		
+		[self addChild: menu z:1];
+
 	}
 
 	return self;
@@ -129,6 +129,7 @@ Class restartAction()
 
 @interface ShaderNode : CCNode
 {
+	ccVertex2F	center_;
 	ccVertex2F	resolution_;
 	float		time_;
 	GLuint		uniformCenter, uniformResolution, uniformTime;
@@ -145,45 +146,46 @@ enum {
 	SIZE_Y = 256,
 };
 
-+(id) shaderNodeWithVertex:(NSString*)vert fragment:(NSString*)frag {
++(id) shaderNodeWithVertex:(NSString*)vert fragment:(NSString*)frag
+{
 	return [[[self alloc] initWithVertex:vert fragment:frag] autorelease];
 }
 
 -(id) initWithVertex:(NSString*)vert fragment:(NSString*)frag
 {
 	if( (self=[super init] ) ) {
-		
+
 		[self loadShaderVertex:vert fragment:frag];
 
 		time_ = 0;
 		resolution_ = (ccVertex2F) { SIZE_X, SIZE_Y };
-		
+
 		[self scheduleUpdate];
-		
+
 		[self setContentSize:CGSizeMake(SIZE_X, SIZE_Y)];
 		[self setAnchorPoint:ccp(0.5f, 0.5f)];
 	}
-	
+
 	return self;
 }
 
 -(void) loadShaderVertex:(NSString*)vert fragment:(NSString*)frag
 {
-	GLProgram *shader = [[GLProgram alloc] initWithVertexShaderFilename:vert
+	CCGLProgram *shader = [[CCGLProgram alloc] initWithVertexShaderFilename:vert
 												 fragmentShaderFilename:frag];
-	
+
 	[shader addAttribute:@"aVertex" index:kCCVertexAttrib_Position];
-	
+
 	[shader link];
-	
+
 	[shader updateUniforms];
 
 	uniformCenter = glGetUniformLocation( shader->program_, "center");
 	uniformResolution = glGetUniformLocation( shader->program_, "resolution");
 	uniformTime = glGetUniformLocation( shader->program_, "time");
-	
+
 	self.shaderProgram = shader;
-	
+
 	[shader release];
 }
 
@@ -192,26 +194,37 @@ enum {
 	time_ += dt;
 }
 
+-(void) setPosition:(CGPoint)newPosition
+{
+	[super setPosition:newPosition];
+	center_ = (ccVertex2F) { position_.x * CC_CONTENT_SCALE_FACTOR(), position_.y * CC_CONTENT_SCALE_FACTOR() };
+}
 
 -(void) draw
 {
-	[super draw];
-	
+	CC_NODE_DRAW_SETUP();
+
 	float w = SIZE_X, h = SIZE_Y;
 	GLfloat vertices[12] = {0,0, w,0, w,h, 0,0, 0,h, w,h};
 
 	//
 	// Uniforms
 	//
-	glUniform2fv( uniformCenter, 1, (GLfloat*)&position_ );
-	glUniform2fv( uniformResolution, 1, (GLfloat*)&resolution_ );
+	[shaderProgram_ setUniformLocation:uniformCenter withF1:center_.x f2:center_.y];
+	[shaderProgram_ setUniformLocation:uniformResolution withF1:resolution_.x f2:resolution_.y];
+
+	// time changes all the time, so it is Ok to call OpenGL directly, and not the "cached" version
 	glUniform1f( uniformTime, time_ );
-	
+//	[shaderProgram_ setUniformLocation:uniformTime with1f:time_];
+
+
 	ccGLEnableVertexAttribs( kCCVertexAttribFlag_Position );
 
 	glVertexAttribPointer(kCCVertexAttrib_Position, 2, GL_FLOAT, GL_FALSE, 0, vertices);
 
-	glDrawArrays(GL_TRIANGLES, 0, 6);	
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	
+	CC_INCREMENT_GL_DRAWS(1);
 }
 @end
 
@@ -223,15 +236,15 @@ enum {
 -(id) init
 {
 	if( (self=[super init]) ) {
-		ShaderNode *sn = [ShaderNode shaderNodeWithVertex:@"Monjori.vsh" fragment:@"Monjori.fsh"];
-		
+		ShaderNode *sn = [ShaderNode shaderNodeWithVertex:@"example_Monjori.vsh" fragment:@"example_Monjori.fsh"];
+
 		CGSize s = [[CCDirector sharedDirector] winSize];
-		[sn setPosition:ccp(s.width/2, s.height/2)];
-		
+		sn.position = ccp(s.width/2, s.height/2);
+
 		[self addChild:sn];
 	}
-	
-	return self;	
+
+	return self;
 }
 
 -(NSString *) title
@@ -253,15 +266,15 @@ enum {
 -(id) init
 {
 	if( (self=[super init] ) ) {
-		ShaderNode *sn = [ShaderNode shaderNodeWithVertex:@"Mandelbrot.vsh" fragment:@"Mandelbrot.fsh"];
-		
+		ShaderNode *sn = [ShaderNode shaderNodeWithVertex:@"example_Mandelbrot.vsh" fragment:@"example_Mandelbrot.fsh"];
+
 		CGSize s = [[CCDirector sharedDirector] winSize];
-		[sn setPosition:ccp(s.width/2, s.height/2)];
-		
+		sn.position = ccp(s.width/2, s.height/2);
+
 		[self addChild:sn];
 	}
-	
-	return self;	
+
+	return self;
 }
 
 -(NSString *) title
@@ -282,15 +295,15 @@ enum {
 -(id) init
 {
 	if( (self=[super init] ) ) {
-		ShaderNode *sn = [ShaderNode shaderNodeWithVertex:@"Julia.vsh" fragment:@"Julia.fsh"];
-		
+		ShaderNode *sn = [ShaderNode shaderNodeWithVertex:@"example_Julia.vsh" fragment:@"example_Julia.fsh"];
+
 		CGSize s = [[CCDirector sharedDirector] winSize];
-		[sn setPosition:ccp(s.width/2, s.height/2)];
-		
+		sn.position = ccp(s.width/2, s.height/2);
+
 		[self addChild:sn];
 	}
-	
-	return self;	
+
+	return self;
 }
 
 -(NSString *) title
@@ -312,16 +325,16 @@ enum {
 -(id) init
 {
 	if( (self=[super init] ) ) {
-		
-		ShaderNode *sn = [ShaderNode shaderNodeWithVertex:@"Heart.vsh" fragment:@"Heart.fsh"];
-		
+
+		ShaderNode *sn = [ShaderNode shaderNodeWithVertex:@"example_Heart.vsh" fragment:@"example_Heart.fsh"];
+
 		CGSize s = [[CCDirector sharedDirector] winSize];
-		[sn setPosition:ccp(s.width/2, s.height/2)];
+		sn.position = ccp(s.width/2, s.height/2);
 
 		[self addChild:sn];
 	}
-	
-	return self;	
+
+	return self;
 }
 
 -(NSString *) title
@@ -342,16 +355,16 @@ enum {
 -(id) init
 {
 	if( (self=[super init] ) ) {
-		
-		ShaderNode *sn = [ShaderNode shaderNodeWithVertex:@"Flower.vsh" fragment:@"Flower.fsh"];
-		
+
+		ShaderNode *sn = [ShaderNode shaderNodeWithVertex:@"example_Flower.vsh" fragment:@"example_Flower.fsh"];
+
 		CGSize s = [[CCDirector sharedDirector] winSize];
-		[sn setPosition:ccp(s.width/2, s.height/2)];
+		sn.position = ccp(s.width/2, s.height/2);
 
 		[self addChild:sn];
 	}
-	
-	return self;	
+
+	return self;
 }
 
 -(NSString *) title
@@ -372,15 +385,15 @@ enum {
 -(id) init
 {
 	if( (self=[super init] ) ) {
-		ShaderNode *sn = [ShaderNode shaderNodeWithVertex:@"Plasma.vsh" fragment:@"Plasma.fsh"];
-		
+		ShaderNode *sn = [ShaderNode shaderNodeWithVertex:@"example_Plasma.vsh" fragment:@"example_Plasma.fsh"];
+
 		CGSize s = [[CCDirector sharedDirector] winSize];
-		[sn setPosition:ccp(s.width/2, s.height/2)];
-		
+		sn.position = ccp(s.width/2, s.height/2);
+
 		[self addChild:sn];
 	}
-	
-	return self;	
+
+	return self;
 }
 
 -(NSString *) title
@@ -400,8 +413,8 @@ enum {
 @interface SpriteBlur : CCSprite
 {
 	CGPoint blur_;
-	CGFloat	sub_[4];
-	
+	GLfloat	sub_[4];
+
 	GLuint	blurLocation;
 	GLuint	subLocation;
 }
@@ -413,75 +426,75 @@ enum {
 -(id) initWithTexture:(CCTexture2D*)texture rect:(CGRect)rect
 {
 	if( (self=[super initWithTexture:texture rect:rect]) ) {
-		
+
 		CGSize s = [texture_ contentSizeInPixels];
-	
+
 		blur_ = ccp(1/s.width, 1/s.height);
 		sub_[0] = sub_[1] = sub_[2] = sub_[3] = 0;
-		
-		self.shaderProgram = [[GLProgram alloc] initWithVertexShaderFilename:@"PositionTextureColor.vsh"
-													 fragmentShaderFilename:@"Blur.fsh"];
-		
-		[self.shaderProgram release];
+
+		shaderProgram_ = [[CCGLProgram alloc] initWithVertexShaderFilename:@"PositionTextureColor.vsh"
+													 fragmentShaderFilename:@"example_Blur.fsh"];
+
 
 		CHECK_GL_ERROR_DEBUG();
 
 		[shaderProgram_ addAttribute:kCCAttributeNamePosition index:kCCVertexAttrib_Position];
 		[shaderProgram_ addAttribute:kCCAttributeNameColor index:kCCVertexAttrib_Color];
 		[shaderProgram_ addAttribute:kCCAttributeNameTexCoord index:kCCVertexAttrib_TexCoords];
-		
+
 		CHECK_GL_ERROR_DEBUG();
-		
+
 		[shaderProgram_ link];
 
 		CHECK_GL_ERROR_DEBUG();
-		
+
 		[shaderProgram_ updateUniforms];
 
 		CHECK_GL_ERROR_DEBUG();
 
 		subLocation = glGetUniformLocation( shaderProgram_->program_, "substract");
 		blurLocation = glGetUniformLocation( shaderProgram_->program_, "blurSize");
-		
+
 		CHECK_GL_ERROR_DEBUG();
 	}
-	
+
 	return self;
 }
 
 -(void) draw
 {
 	ccGLEnableVertexAttribs(kCCVertexAttribFlag_PosColorTex );
-	ccGLBlendFunc( blendFunc_.src, blendFunc_.dst );	
-	
-	ccGLUseProgram( shaderProgram_->program_ );
-	ccGLUniformModelViewProjectionMatrix( shaderProgram_ );
+	ccGLBlendFunc( blendFunc_.src, blendFunc_.dst );
 
-	glUniform2f( blurLocation, blur_.x, blur_.y );
-	glUniform4f( subLocation, sub_[0], sub_[1], sub_[2], sub_[3] );
-	
+	[shaderProgram_ use];
+	[shaderProgram_ setUniformForModelViewProjectionMatrix];
+	[shaderProgram_ setUniformLocation:blurLocation withF1:blur_.x f2:blur_.y];
+	[shaderProgram_ setUniformLocation:subLocation with4fv:sub_ count:1];
+
 	ccGLBindTexture2D(  [texture_ name] );
-	
+
 	//
 	// Attributes
 	//
 #define kQuadSize sizeof(quad_.bl)
 	long offset = (long)&quad_;
-	
+
 	// vertex
 	NSInteger diff = offsetof( ccV3F_C4B_T2F, vertices);
 	glVertexAttribPointer(kCCVertexAttrib_Position, 3, GL_FLOAT, GL_FALSE, kQuadSize, (void*) (offset + diff));
-	
+
 	// texCoods
 	diff = offsetof( ccV3F_C4B_T2F, texCoords);
 	glVertexAttribPointer(kCCVertexAttrib_TexCoords, 2, GL_FLOAT, GL_FALSE, kQuadSize, (void*)(offset + diff));
-	
+
 	// color
 	diff = offsetof( ccV3F_C4B_T2F, colors);
 	glVertexAttribPointer(kCCVertexAttrib_Color, 4, GL_UNSIGNED_BYTE, GL_TRUE, kQuadSize, (void*)(offset + diff));
-	
-	
+
+
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	
+	CC_INCREMENT_GL_DRAWS(1);
 }
 
 -(void) setBlurSize:(CGFloat)f
@@ -496,54 +509,65 @@ enum {
 
 
 @implementation ShaderBlur
+
+@synthesize sliderCtl=sliderCtl_;
+
 -(id) init
 {
 	if( (self=[super init] ) ) {
 
 		blurSprite = [SpriteBlur spriteWithFile:@"grossini.png"];
 		CCSprite *sprite = [CCSprite spriteWithFile:@"grossini.png"];
-		
-		
+
 		CGSize s = [[CCDirector sharedDirector] winSize];
 		[blurSprite setPosition:ccp(s.width/3, s.height/2)];
 		[sprite setPosition:ccp(2*s.width/3, s.height/2)];
-		
-		[self addChild:blurSprite];	
+
+		[self addChild:blurSprite];
 		[self addChild:sprite];
-		
-		sliderCtl = [self sliderCtl];
-		
-#ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
-		
-		AppController *app = [[UIApplication sharedApplication] delegate];
-		UIViewController *ctl = [app viewController];
-		
-		[ctl.view addSubview: sliderCtl];
-		
-#elif defined(__MAC_OS_X_VERSION_MAX_ALLOWED)
-		MacGLView *view = [[CCDirector sharedDirector] openGLView];
-		
+
+		self.sliderCtl = [self createSliderCtl];
+
+#ifdef __CC_PLATFORM_IOS
+
+		AppController *app = (AppController*) [[UIApplication sharedApplication] delegate];
+		UIViewController *ctl = [app navController];
+
+		[ctl.view addSubview: sliderCtl_];
+
+#elif defined(__CC_PLATFORM_MAC)
+		CCGLView *view = [[CCDirector sharedDirector] view];
+
 		if( ! overlayWindow ) {
 			overlayWindow  = [[NSWindow alloc] initWithContentRect:[[view window] frame]
 														 styleMask:NSBorderlessWindowMask
 														   backing:NSBackingStoreBuffered
 															 defer:NO];
-			
+
 			[overlayWindow setFrame:[[view window] frame] display:NO];
-			
-			[[overlayWindow contentView] addSubview:sliderCtl];
+
+			[[overlayWindow contentView] addSubview:sliderCtl_];
 			[overlayWindow setParentWindow:[view window]];
 			[overlayWindow setOpaque:NO];
 			[overlayWindow makeKeyAndOrderFront:nil];
 			[overlayWindow setBackgroundColor:[NSColor clearColor]];
 			[[overlayWindow contentView] display];
 		}
-		
+
 		[[view window] addChildWindow:overlayWindow ordered:NSWindowAbove];
+		[overlayWindow release];
 #endif
 	}
-	
-	return self;	
+
+	return self;
+}
+
+-(void) dealloc
+{
+	[sliderCtl_ release];
+	[sliderCtl_ removeFromSuperview];
+
+	[super dealloc];
 }
 
 -(NSString *) title
@@ -553,193 +577,184 @@ enum {
 
 -(NSString *) subtitle
 {
-	return @"Blur";
+	return @"Gaussian blur";
 }
 
-#ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
-- (UISlider *)sliderCtl
+#ifdef __CC_PLATFORM_IOS
+-(UISlider*) createSliderCtl
 {
-    if (sliderCtl == nil) 
-    {
-        CGRect frame = CGRectMake(12.0f, 12.0f, 120.0f, 7.0f);
-        sliderCtl = [[UISlider alloc] initWithFrame:frame];
-        [sliderCtl addTarget:self action:@selector(sliderAction:) forControlEvents:UIControlEventValueChanged];
-        
-        // in case the parent view draws with a custom color or gradient, use a transparent color
-        sliderCtl.backgroundColor = [UIColor clearColor];
-        
-        sliderCtl.minimumValue = 0.0f;
-        sliderCtl.maximumValue = 3.0f;
-        sliderCtl.continuous = YES;
-        sliderCtl.value = 1.0f;		
-    }
-    return [sliderCtl autorelease];
+	CGRect frame = CGRectMake(40.0f, 110.0f, 240.0f, 7.0f);
+	UISlider *slider = [[UISlider alloc] initWithFrame:frame];
+	[slider addTarget:self action:@selector(sliderAction:) forControlEvents:UIControlEventValueChanged];
+
+	// in case the parent view draws with a custom color or gradient, use a transparent color
+	slider.backgroundColor = [UIColor clearColor];
+
+	slider.minimumValue = 0.0f;
+	slider.maximumValue = 3.0f;
+	slider.continuous = YES;
+	slider.value = 1.0f;
+
+	return [slider autorelease];
 }
-#elif defined(__MAC_OS_X_VERSION_MAX_ALLOWED)
--(NSSlider*) sliderCtl
+#elif defined(__CC_PLATFORM_MAC)
+-(NSSlider*) createSliderCtl
 {
-	if( sliderCtl == nil )
-	{
-		sliderCtl = [[NSSlider alloc] initWithFrame: NSMakeRect (0, 0, 200, 20)];
-		[sliderCtl setMinValue: 0];
-		[sliderCtl setMaxValue: 3];
-		[sliderCtl setFloatValue: 1];
-		[sliderCtl setAction: @selector (sliderAction:)];
-		[sliderCtl setTarget: self];
-		[sliderCtl setContinuous: YES];
-	}
-	
-	return sliderCtl;
+	NSSlider *slider = [[NSSlider alloc] initWithFrame: NSMakeRect(200, 350, 240, 20)];
+	[slider setMinValue: 0];
+	[slider setMaxValue: 3];
+	[slider setFloatValue: 1];
+	[slider setAction: @selector (sliderAction:)];
+	[slider setTarget: self];
+	[slider setContinuous: YES];
+
+	return [slider autorelease];
 }
 #endif // Mac
 
 -(void) sliderAction:(id) sender
 {
-#ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
-	[blurSprite setBlurSize: sliderCtl.value];
-#elif defined(__MAC_OS_X_VERSION_MAX_ALLOWED)
-	[blurSprite setBlurSize: [sliderCtl floatValue]];
+#ifdef __CC_PLATFORM_IOS
+	[blurSprite setBlurSize: sliderCtl_.value];
+#elif defined(__CC_PLATFORM_MAC)
+	[blurSprite setBlurSize: [sliderCtl_ floatValue]];
 #endif
 }
-
 @end
 
+#pragma mark -
+#pragma mark ShaderRetroEffect
+
+@implementation ShaderRetroEffect
+-(id) init
+{
+	if( (self=[super init] ) ) {
+		CCGLProgram *p = [[CCGLProgram alloc] initWithVertexShaderFilename:@"PositionTexture.vsh"
+									   fragmentShaderFilename:@"example_HorizontalColor.fsh"];
+		
+		[p addAttribute:kCCAttributeNamePosition index:kCCVertexAttrib_Position];
+		[p addAttribute:kCCAttributeNameTexCoord index:kCCVertexAttrib_TexCoords];
+		
+		[p link];
+		[p updateUniforms];
+
+
+		CCDirector *director = [CCDirector sharedDirector];
+		CGSize s = [director winSize];
+
+		label_ = [CCLabelBMFont labelWithString:@"RETRO EFFECT" fntFile:@"west_england-64.fnt"];
+		
+		label_.shaderProgram = p;
+		
+		[p release];
+		
+	
+		[label_ setPosition:ccp(s.width/2,s.height/2)];
+		
+		[self addChild:label_];
+		
+		[self scheduleUpdate];
+		
+	}
+	
+	return self;
+}
+
+-(void) update:(ccTime)dt
+{
+//	CGSize size = [[CCDirector sharedDirector] winSize];
+
+	accum_ += dt;
+
+	CCArray *array = [label_ children];
+	
+	int i=0;
+	for( CCSprite *sprite in array ) {
+		i++;
+		CGPoint oldPosition = sprite.position;
+		sprite.position = ccp( oldPosition.x, sinf( accum_ * 2 + i/2.0) * 20  );
+		
+		
+		// add fabs() to prevent negative scaling
+		float scaleY = ( sinf( accum_ * 2 + i/2.0 + 0.707) );
+		
+		sprite.scaleY = scaleY;
+	}
+}
+
+-(NSString *) title
+{
+	return @"Shader: Retro test";
+}
+
+-(NSString *) subtitle
+{
+	return @"sin() effect with moving colors";
+}
+@end
+
+
 // CLASS IMPLEMENTATIONS
-#ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
+#ifdef __CC_PLATFORM_IOS
 
 #pragma mark -
 #pragma mark AppController
 
 @implementation AppController
 
-@synthesize viewController = viewController_;
-
-- (void) applicationDidFinishLaunching:(UIApplication*)application
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-	// CC_DIRECTOR_INIT()
-	//
-	// 1. Initializes an EAGLView with 0-bit depth format, and RGB565 render buffer
-	// 2. EAGLView multiple touches: disabled
-	// 3. creates a UIWindow, and assign it to the "window_" var (it must already be declared)
-	// 4. creates a UIViewController, and assign it to the "viewController_" var (it must already be declared)
-	// 5. Parents EAGLView to the newly created ViewController. Parents ViewController with UIWindow
-	// 6. It will try to run at 60 FPS
-	// 7. Display FPS: NO
-	// 8. Device orientation: Portrait
-	// 9. Connects the director to the EAGLView
-	//
-	CC_DIRECTOR_INIT();
-	
-	// Obtain the shared director in order to...
-	CCDirector *director = [CCDirector sharedDirector];
-	
+	[super application:application didFinishLaunchingWithOptions:launchOptions];
+
 	// Turn on display FPS
-	[director setDisplayStats:kCCDirectorStatsFPS];
-	
+	[director_ setDisplayStats:YES];
+
 	// Enables High Res mode (Retina Display) on iPhone 4 and maintains low res on all other devices
 //	if( ! [director enableRetinaDisplay:YES] )
 //		CCLOG(@"Retina Display Not supported");
-	
+
 	CCScene *scene = [CCScene node];
+	
 	[scene addChild: [nextAction() node]];
-			 
-	[director runWithScene: scene];
-}
 
-// getting a call, pause the game
--(void) applicationWillResignActive:(UIApplication *)application
-{
-	[[CCDirector sharedDirector] pause];
-}
+	[director_ pushScene: scene];
 
-// call got rejected
--(void) applicationDidBecomeActive:(UIApplication *)application
-{
-	[[CCDirector sharedDirector] resume];
-}
-
--(void) applicationDidEnterBackground:(UIApplication*)application
-{
-	[[CCDirector sharedDirector] stopAnimation];
-}
-
--(void) applicationWillEnterForeground:(UIApplication*)application
-{
-	[[CCDirector sharedDirector] startAnimation];
-}
-
-// application will be killed
-- (void)applicationWillTerminate:(UIApplication *)application
-{	
-	CC_DIRECTOR_END();
-}
-
-// purge memory
-- (void)applicationDidReceiveMemoryWarning:(UIApplication *)application
-{
-	[[CCDirector sharedDirector] purgeCachedData];
-}
-
-// next delta time will be zero
--(void) applicationSignificantTimeChange:(UIApplication *)application
-{
-	[[CCDirector sharedDirector] setNextDeltaTimeZero:YES];
-}
-
-- (void) dealloc
-{
-	[viewController_ release];
-	[window_ release];
-	[super dealloc];
+	return YES;
 }
 @end
 
-#elif defined(__MAC_OS_X_VERSION_MAX_ALLOWED)
-@implementation cocos2dmacAppDelegate
-
-@synthesize window=window_, glView=glView_;
+#elif defined(__CC_PLATFORM_MAC)
+@implementation AppController
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
+	// don't call super. Window is created manually in this sample
+//	[super applicationDidFinishLaunching:aNotification];
+
 	CGSize winSize = CGSizeMake(640,480);
-	
+
 	//
 	// CC_DIRECTOR_INIT:
 	// 1. It will create an NSWindow with a given size
-	// 2. It will create a MacGLView and it will associate it with the NSWindow
-	// 3. It will register the MacGLView to the CCDirector
+	// 2. It will create a CCGLView and it will associate it with the NSWindow
+	// 3. It will register the CCGLView to the CCDirector
 	//
 	// If you want to create a fullscreen window, you should do it AFTER calling this macro
-	//	
+	//
 	CC_DIRECTOR_INIT(winSize);
-	
+
 	// Enable "moving" mouse event. Default no.
 	[window_ setAcceptsMouseMovedEvents:NO];
-	
-	// EXPERIMENTAL stuff.
-	// 'Effects' don't work correctly when autoscale is turned on.
-	CCDirectorMac *director = (CCDirectorMac*) [CCDirector sharedDirector];
-	[director setResizeMode:kCCDirectorResize_AutoScale];	
-	
+
+	[director_ setResizeMode:kCCDirectorResize_AutoScale];
+
 	// Turn on display FPS
-	[director setDisplayStats:kCCDirectorStatsFPS];
-	
+	[director_ setDisplayStats:YES];
+
 	CCScene *scene = [CCScene node];
 	[scene addChild: [nextAction() node]];
-	
-	[director runWithScene:scene];
-}
 
-- (BOOL) applicationShouldTerminateAfterLastWindowClosed: (NSApplication *) theApplication
-{
-	return YES;
+	[director_ runWithScene:scene];
 }
-
-- (IBAction)toggleFullScreen: (id)sender
-{
-	CCDirectorMac *director = (CCDirectorMac*) [CCDirector sharedDirector];
-	[director setFullScreen: ! [director isFullScreen] ];
-}
-
 @end
 #endif

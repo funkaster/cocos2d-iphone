@@ -2,11 +2,7 @@
  */
 #import <UIKit/UIKit.h>
 #import "cocos2d.h"
+#import "BaseAppController.h"
 
-@interface AppController : NSObject <UIApplicationDelegate>
-{
-	UIWindow *window_;
-	UIViewController *viewController_;
-}
-
+@interface AppController : BaseAppController
 @end

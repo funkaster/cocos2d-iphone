@@ -1,28 +1,10 @@
+
+#import "BaseAppController.h"
 #import "cocos2d.h"
 
 //CLASS INTERFACE
-#ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
-@interface AppController : NSObject <UIApplicationDelegate>
-{
-	UIWindow *window_;
-	UIViewController *viewController_;
-}
+@interface AppController : BaseAppController
 @end
-
-#elif defined(__MAC_OS_X_VERSION_MAX_ALLOWED)
-@interface cocos2dmacAppDelegate : NSObject <NSApplicationDelegate>
-{
-	NSWindow	*window_;
-	MacGLView	*glView_;
-}
-
-@property (assign) IBOutlet NSWindow	*window;
-@property (assign) IBOutlet MacGLView	*glView;
-
-- (IBAction)toggleFullScreen:(id)sender;
-
-@end
-#endif // Mac
 
 @interface SpriteDemo: CCLayer
 {
@@ -76,7 +58,7 @@
 	CCSpriteBatchNode *batchNode;
 	CCSprite *sprite1;
 	CCSprite *sprite2;
-	CCSprite *sprite3;	
+	CCSprite *sprite3;
 }
 @end
 
@@ -85,9 +67,9 @@
 	CCNode *node;
 	CCSprite *sprite1;
 	CCSprite *sprite2;
-	CCSprite *sprite3;	
-	CCSprite *sprite4;	
-	CCSprite *sprite5;		
+	CCSprite *sprite3;
+	CCSprite *sprite4;
+	CCSprite *sprite5;
 }
 @end
 
@@ -96,16 +78,16 @@
 	CCSpriteBatchNode *batchNode;
 	CCSprite *sprite1;
 	CCSprite *sprite2;
-	CCSprite *sprite3;	
-	CCSprite *sprite4;	
-	CCSprite *sprite5;		
+	CCSprite *sprite3;
+	CCSprite *sprite4;
+	CCSprite *sprite5;
 }
 @end
 
 @interface SpriteBatchNodeReorderOneChild : SpriteDemo
 {
 	CCSpriteBatchNode *batchNode_;
-	CCSprite *reorderSprite_;		
+	CCSprite *reorderSprite_;
 }
 @end
 
@@ -272,6 +254,14 @@
 {}
 @end
 
+@interface SpriteBatchNodeSkewNegativeScaleChildren : SpriteDemo
+{}
+@end
+
+@interface SpriteSkewNegativeScaleChildren : SpriteDemo
+{}
+@end
+
 @interface SpriteNilTexture : SpriteDemo
 {}
 @end
@@ -293,4 +283,6 @@
 {}
 @end
 
-
+@interface SpriteBatchBug1217 : SpriteDemo
+{}
+@end

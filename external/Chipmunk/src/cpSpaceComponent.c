@@ -25,12 +25,12 @@
 
 #include "chipmunk_private.h"
 
-#pragma mark Sleeping Functions
+//MARK: Sleeping Functions
 
 void
 cpSpaceActivateBody(cpSpace *space, cpBody *body)
 {
-	cpAssertSoft(!cpBodyIsRogue(body), "Internal error: Attempting to activate a rouge body.");
+	cpAssertHard(!cpBodyIsRogue(body), "Internal error: Attempting to activate a rouge body.");
 	
 	if(space->locked){
 		// cpSpaceActivateBody() is called again once the space is unlocked
@@ -57,7 +57,7 @@ cpSpaceActivateBody(cpSpace *space, cpBody *body)
 				// Reinsert the arbiter into the arbiter cache
 				cpShape *a = arb->a, *b = arb->b;
 				cpShape *shape_pair[] = {a, b};
-				cpHashValue arbHashID = CP_HASH_PAIR((size_t)a, (size_t)b);
+				cpHashValue arbHashID = CP_HASH_PAIR((cpHashValue)a, (cpHashValue)b);
 				cpHashSetInsert(space->cachedArbiters, arbHashID, shape_pair, arb, NULL);
 				
 				// Update the arbiter's state
@@ -79,7 +79,7 @@ cpSpaceActivateBody(cpSpace *space, cpBody *body)
 static void
 cpSpaceDeactivateBody(cpSpace *space, cpBody *body)
 {
-	cpAssertSoft(!cpBodyIsRogue(body), "Internal error: Attempting to deactivate a rouge body.");
+	cpAssertHard(!cpBodyIsRogue(body), "Internal error: Attempting to deactivate a rouge body.");
 	
 	cpArrayDeleteObj(space->bodies, body);
 	
@@ -117,7 +117,7 @@ static inline void
 ComponentActivate(cpBody *root)
 {
 	if(!root || !cpBodyIsSleeping(root)) return;
-	cpAssertSoft(!cpBodyIsRogue(root), "Internal Error: ComponentActivate() called on a rogue body.");
+	cpAssertHard(!cpBodyIsRogue(root), "Internal Error: ComponentActivate() called on a rogue body.");
 	
 	cpSpace *space = root->space;
 	cpBody *body = root;
@@ -154,6 +154,8 @@ cpBodyActivateStatic(cpBody *body, cpShape *filter)
 			cpBodyActivate(arb->body_a == body ? arb->body_b : arb->body_a);
 		}
 	}
+	
+	// TODO should also activate joints?
 }
 
 static inline void

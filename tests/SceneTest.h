@@ -1,13 +1,9 @@
 #import "cocos2d.h"
+#import "BaseAppController.h"
 
 //CLASS INTERFACE
-@interface AppController : NSObject <UIApplicationDelegate>
-{
-	UIWindow	*window_;
-	UIViewController *viewController_;
-}
+@interface AppController : BaseAppController
 @end
-
 
 @interface Layer1 : CCLayerColor
 {

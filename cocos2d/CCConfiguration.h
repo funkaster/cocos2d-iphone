@@ -3,17 +3,17 @@
  *
  * Copyright (c) 2010 Ricardo Quesada
  * Copyright (c) 2011 Zynga Inc.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,13 +30,6 @@
 /** OS version definitions. Includes both iOS and Mac OS versions
  */
 enum {
-	kCCiOSVersion_3_0   = 0x03000000,
-	kCCiOSVersion_3_1   = 0x03010000,
-	kCCiOSVersion_3_1_1 = 0x03010100,
-	kCCiOSVersion_3_1_2 = 0x03010200,
-	kCCiOSVersion_3_1_3 = 0x03010300,
-	kCCiOSVersion_3_2   = 0x03020000,
-	kCCiOSVersion_3_2_1 = 0x03020100,
 	kCCiOSVersion_4_0   = 0x04000000,
 	kCCiOSVersion_4_0_1 = 0x04000100,
 	kCCiOSVersion_4_1   = 0x04010000,
@@ -48,11 +41,12 @@ enum {
 	kCCiOSVersion_4_3_3 = 0x04030300,
 	kCCiOSVersion_4_3_4 = 0x04030400,
 	kCCiOSVersion_4_3_5 = 0x04030500,
-	kCCiOSVersion_5_0_0 = 0x05000000,
-
-	kCCMacVersion_10_5  = 0x0a050000,
+	kCCiOSVersion_5_0   = 0x05000000,
+	kCCiOSVersion_5_0_1 = 0x05000100,
+	
 	kCCMacVersion_10_6  = 0x0a060000,
 	kCCMacVersion_10_7  = 0x0a070000,
+	kCCMacVersion_10_8  = 0x0a080000,
 };
 
 /**
@@ -83,9 +77,9 @@ enum {
  */
 @property (nonatomic, readonly) GLint maxTextureUnits;
 
-/** Whether or not the GPU supports NPOT (Non Power Of Two) textures. 
+/** Whether or not the GPU supports NPOT (Non Power Of Two) textures.
  OpenGL ES 2.0 already supports NPOT (iOS).
- 
+
  @since v0.99.2
  */
 @property (nonatomic, readonly) BOOL supportsNPOT;
@@ -94,13 +88,13 @@ enum {
 @property (nonatomic, readonly) BOOL supportsPVRTC;
 
 /** Whether or not BGRA8888 textures are supported.
- 
+
  @since v0.99.2
  */
 @property (nonatomic, readonly) BOOL supportsBGRA8888;
 
 /** Whether or not glDiscardFramebufferEXT is supported
- 
+
  @since v0.99.2
  */
 @property (nonatomic, readonly) BOOL supportsDiscardFramebuffer;
@@ -108,7 +102,7 @@ enum {
 /** returns the OS version.
 	- On iOS devices it returns the firmware version.
 	- On Mac returns the OS version
- 
+
  @since v0.99.5
  */
 @property (nonatomic, readonly) unsigned int OSVersion;

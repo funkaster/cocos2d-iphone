@@ -8,9 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface FadeToGreyAppDelegate : NSObject <UIApplicationDelegate> {
-	UIWindow *window_;
-	UIViewController *viewController_;
-}
+#import "BaseAppController.h"
 
+@interface FadeToGreyAppDelegate : BaseAppController
 @end

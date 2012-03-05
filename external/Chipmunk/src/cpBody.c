@@ -88,7 +88,7 @@ cpBodyInitStatic(cpBody *body)
 }
 
 cpBody *
-cpBodyNewStatic()
+cpBodyNewStatic(void)
 {
 	return cpBodyInitStatic(cpBodyAlloc());
 }
@@ -139,6 +139,8 @@ cpBodySanityCheck(cpBody *body)
 void
 cpBodySetMass(cpBody *body, cpFloat mass)
 {
+	cpAssertHard(mass > 0.0f, "Mass must be positive and non-zero.");
+	
 	cpBodyActivate(body);
 	body->m = mass;
 	body->m_inv = 1.0f/mass;
@@ -147,6 +149,8 @@ cpBodySetMass(cpBody *body, cpFloat mass)
 void
 cpBodySetMoment(cpBody *body, cpFloat moment)
 {
+	cpAssertHard(moment > 0.0f, "Moment of Inertia must be positive and non-zero.");
+	
 	cpBodyActivate(body);
 	body->i = moment;
 	body->i_inv = 1.0f/moment;
@@ -269,6 +273,24 @@ cpBodyApplyImpulse(cpBody *body, const cpVect j, const cpVect r)
 {
 	cpBodyActivate(body);
 	apply_impulse(body, j, r);
+}
+
+static inline cpVect
+cpBodyGetVelAtPoint(cpBody *body, cpVect r)
+{
+	return cpvadd(body->v, cpvmult(cpvperp(r), body->w));
+}
+
+cpVect
+cpBodyGetVelAtWorldPoint(cpBody *body, cpVect point)
+{
+	return cpBodyGetVelAtPoint(body, cpvsub(point, body->p));
+}
+
+cpVect
+cpBodyGetVelAtLocalPoint(cpBody *body, cpVect point)
+{
+	return cpBodyGetVelAtPoint(body, cpvrotate(point, body->rot));
 }
 
 void

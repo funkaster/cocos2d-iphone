@@ -1,29 +1,8 @@
 #import "cocos2d.h"
 
-//CLASS INTERFACE
-#ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
-@interface AppController : NSObject <UIApplicationDelegate>
-{
-	UIWindow *window_;
-	UIViewController *viewController_;
-}
-@property (nonatomic, readwrite, retain) UIViewController *viewController;
+#import "BaseAppController.h"
+@interface AppController : BaseAppController
 @end
-
-#elif defined(__MAC_OS_X_VERSION_MAX_ALLOWED)
-@interface cocos2dmacAppDelegate : NSObject <NSApplicationDelegate>
-{
-	NSWindow	*window_;
-	MacGLView	*glView_;
-}
-
-@property (assign) IBOutlet NSWindow	*window;
-@property (assign) IBOutlet MacGLView	*glView;
-
-- (IBAction)toggleFullScreen:(id)sender;
-
-@end
-#endif // Mac
 
 @interface ShaderTest: CCLayer
 {
@@ -69,18 +48,31 @@
 {
 	SpriteBlur *blurSprite;
 
-#ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
-	UISlider	*sliderCtl;
-#elif defined(__MAC_OS_X_VERSION_MAX_ALLOWED)
-	NSSlider	*sliderCtl;
+#ifdef __CC_PLATFORM_IOS
+	UISlider	*sliderCtl_;
+#elif defined(__CC_PLATFORM_MAC)
+	NSSlider	*sliderCtl_;
 	NSWindow	*overlayWindow;
 #endif
 }
+#ifdef __CC_PLATFORM_IOS
+@property(nonatomic, retain) UISlider *sliderCtl;
+#elif defined(__CC_PLATFORM_MAC)
+@property(nonatomic, retain) NSSlider *sliderCtl;
+#endif
 
-#ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
-- (UISlider *)sliderCtl;
-#elif defined(__MAC_OS_X_VERSION_MAX_ALLOWED)
--(NSSlider*) sliderCtl;
+#ifdef __CC_PLATFORM_IOS
+-(UISlider*) createSliderCtl;
+#elif defined(__CC_PLATFORM_MAC)
+-(NSSlider*) createSliderCtl;
 #endif
 
 @end
+
+@interface ShaderRetroEffect : ShaderTest
+{
+	CCLabelBMFont *label_;
+	ccTime			accum_;
+}
+@end
+

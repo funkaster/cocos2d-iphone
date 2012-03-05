@@ -23,70 +23,61 @@
 @synthesize mainMenuScene = _mainMenuScene;
 @synthesize storyScene = _storyScene;
 @synthesize actionScene = _actionScene;
-@synthesize window;
 
-- (void) applicationDidFinishLaunching:(UIApplication*)application
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+	[super application:application didFinishLaunchingWithOptions:launchOptions];
+
 	//Kick off sound initialisation, this will happen in a separate thread
 	[[GameSoundManager sharedManager] setup];
-	
-	// Init the window
-	window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-	
-	// get instance of the shared director
-	CCDirector *director = [CCDirector sharedDirector];
+
 
 	// display FPS (useful when debugging)
-	[director setDisplayStats:kCCDirectorStatsFPS];
-	
-	// frames per second
-	[director setAnimationInterval:1.0/60];
-	
-	// create an OpenGL view
-	EAGLView *glView = [EAGLView viewWithFrame:[window bounds]];
-	[glView setMultipleTouchEnabled:YES];
-	
-	// connect it to the director
-	[director setOpenGLView:glView];
-	
-	// glview is a child of the main window
-	[window addSubview:glView];
-	
-	// Make the window visible
-	[window makeKeyAndVisible];
+	[director_ setDisplayStats:YES];
 
-    self.loadingScene = [[[LoadingScene alloc] init] autorelease];		
-	[director runWithScene: _loadingScene];
+	// frames per second
+	[director_ setAnimationInterval:1.0/60];
+
+	// multiple touches on
+	[director_.view setMultipleTouchEnabled:YES];
+
+    self.loadingScene = [[[LoadingScene alloc] init] autorelease];
+	[director_ pushScene: _loadingScene];
+
+	return YES;
 }
 
 - (void)loadScenes {
-   
+
     // Create a shared opengl context so any textures we load can be shared with the
     // main content
     // See http://www.cocos2d-iphone.org/forum/topic/363 for more details
-    EAGLContext *k_context = [[[EAGLContext alloc]
-                               initWithAPI:kEAGLRenderingAPIOpenGLES2
-                               sharegroup:[[[[CCDirector sharedDirector] openGLView] context] sharegroup]] autorelease];    
+
+	CCGLView *view = (CCGLView*) [[CCDirector sharedDirector] view];
+    EAGLContext *k_context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2
+													sharegroup: [view.context sharegroup]];
+
     [EAGLContext setCurrentContext:k_context];
-    
-    self.mainMenuScene = [[[MainMenuScene alloc] init] autorelease];    
+	[k_context release];
+
+    self.mainMenuScene = [[[MainMenuScene alloc] init] autorelease];
     self.storyScene = [[[StoryScene alloc] init] autorelease];
     self.actionScene = [[[ActionScene alloc] init] autorelease];
- 
+
 }
 
 - (void)launchMainMenu {
- 
-    [[CCDirector sharedDirector] replaceScene:[CCTransitionRadialCW transitionWithDuration:0.5f scene:_mainMenuScene]];
-    
+
+    [[CCDirector sharedDirector] replaceScene:[CCTransitionProgressRadialCW transitionWithDuration:0.5f scene:_mainMenuScene]];
+
 }
 
 - (void)launchCurLevel {
     Level *curLevel = [[GameState sharedState] curLevel];
     if ([curLevel isKindOfClass:[StoryLevel class]]) {
-        [[CCDirector sharedDirector] replaceScene:[CCTransitionRadialCW transitionWithDuration:0.5f scene:_storyScene]];
+        [[CCDirector sharedDirector] replaceScene:[CCTransitionProgressRadialCW transitionWithDuration:0.5f scene:_storyScene]];
     } else if ([curLevel isKindOfClass:[ActionLevel class]]) {
-        [[CCDirector sharedDirector] replaceScene:[CCTransitionRadialCW transitionWithDuration:0.5f scene:_actionScene]];
+        [[CCDirector sharedDirector] replaceScene:[CCTransitionProgressRadialCW transitionWithDuration:0.5f scene:_actionScene]];
     }
 }
 
@@ -95,9 +86,9 @@
     [self launchCurLevel];
 }
 
-- (void)launchNewGame { 
+- (void)launchNewGame {
     [[GameState sharedState] reset];
-    [self launchCurLevel];    
+    [self launchCurLevel];
 }
 
 - (void)launchKillEnding {
@@ -115,41 +106,12 @@
     [self launchCurLevel];
 }
 
-- (void)applicationWillResignActive:(UIApplication *)application {
-	[[CCDirector sharedDirector] pause];
-}
-
-- (void)applicationDidBecomeActive:(UIApplication *)application {
-	[[CCDirector sharedDirector] resume];
-}
-
-- (void)applicationDidReceiveMemoryWarning:(UIApplication *)application {
-	[[CCDirector sharedDirector] purgeCachedData];
-}
-
--(void) applicationDidEnterBackground:(UIApplication*)application {
-	[[CCDirector sharedDirector] stopAnimation];
-}
-
--(void) applicationWillEnterForeground:(UIApplication*)application {
-	[[CCDirector sharedDirector] startAnimation];
-}
-
-- (void)applicationWillTerminate:(UIApplication *)application {
-	[[CCDirector sharedDirector] end];
-}
-
-- (void)applicationSignificantTimeChange:(UIApplication *)application {
-	[[CCDirector sharedDirector] setNextDeltaTimeZero:YES];
-}
-
 - (void)dealloc {
     self.loadingScene = nil;
     self.mainMenuScene = nil;
     self.storyScene = nil;
     self.actionScene = nil;
-	[[CCDirector sharedDirector] end];
-	[window release];
+
 	[super dealloc];
 }
 

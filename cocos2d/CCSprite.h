@@ -3,17 +3,17 @@
  *
  * Copyright (c) 2008-2010 Ricardo Quesada
  * Copyright (c) 2011 Zynga Inc.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -62,34 +62,34 @@
  */
 @interface CCSprite : CCNode <CCRGBAProtocol, CCTextureProtocol>
 {
-	
+
 	//
 	// Data used when the sprite is rendered using a CCSpriteBatchNode
 	//
 	CCTextureAtlas			*textureAtlas_;			// Sprite Sheet texture atlas (weak reference)
 	NSUInteger				atlasIndex_;			// Absolute (real) Index on the batch node
 	CCSpriteBatchNode		*batchNode_;			// Used batch node (weak reference)
-	BOOL					dirty_:1;				// Sprite needs to be updated
-	BOOL					recursiveDirty_:1;		// Subchildren needs to be updated
-	BOOL					hasChildren_:1;			// optimization to check if it contain children
-	BOOL					shouldBeHidden_:1;		// should not be drawn because one of the ancestors is not visible
 	CGAffineTransform		transformToBatch_;		//
-	
+	BOOL					dirty_;					// Sprite needs to be updated
+	BOOL					recursiveDirty_;		// Subchildren needs to be updated
+	BOOL					hasChildren_;			// optimization to check if it contain children
+	BOOL					shouldBeHidden_;		// should not be drawn because one of the ancestors is not visible
+
 	//
 	// Data used when the sprite is self-rendered
 	//
 	ccBlendFunc				blendFunc_;				// Needed for the texture protocol
 	CCTexture2D				*texture_;				// Texture used to render the sprite
-	
+
 	//
 	// Shared data
 	//
-	
+
 	// sprite rectangle
 	CGRect	rect_;
 
 	// texture
-	BOOL	rectRotated_:1;
+	BOOL	rectRotated_;
 
 	// Offset Position (used by Zwoptex)
 	CGPoint	offsetPosition_;
@@ -97,16 +97,16 @@
 
 	// vertex coords, texture coords and color info
 	ccV3F_C4B_T2F_Quad quad_;
-	
+
 	// opacity and RGB protocol
 	GLubyte		opacity_;
 	ccColor3B	color_;
 	ccColor3B	colorUnmodified_;
-	BOOL		opacityModifyRGB_:1;
-	
+	BOOL		opacityModifyRGB_;
+
 	// image is flipped
 	BOOL	flipX_:1;
-	BOOL	flipY_:1;		
+	BOOL	flipY_:1;
 }
 
 /** whether or not the Sprite needs to be updated in the Atlas */
@@ -119,11 +119,11 @@
 @property (nonatomic,readonly) CGRect textureRect;
 /** returns whether or not the texture rectangle is rotated */
 @property (nonatomic,readonly) BOOL textureRectRotated;
-/** whether or not the sprite is flipped horizontally. 
+/** whether or not the sprite is flipped horizontally.
  It only flips the texture of the sprite, and not the texture of the sprite's children.
  Also, flipping the texture doesn't alter the anchorPoint.
  If you want to flip the anchorPoint too, and/or to flip the children too use:
- 
+
 	sprite.scaleX *= -1;
  */
 @property (nonatomic,readwrite) BOOL flipX;
@@ -131,7 +131,7 @@
  It only flips the texture of the sprite, and not the texture of the sprite's children.
  Also, flipping the texture doesn't alter the anchorPoint.
  If you want to flip the anchorPoint too, and/or to flip the children too use:
- 
+
 	sprite.scaleY *= -1;
  */
 @property (nonatomic,readwrite) BOOL flipY;
@@ -188,15 +188,10 @@
 /** Creates an sprite with a CGImageRef and a key.
  The key is used by the CCTextureCache to know if a texture was already created with this CGImage.
  For example, a valid key is: @"sprite_frame_01".
- If key is nil, then a new texture will be created each time by the CCTextureCache. 
+ If key is nil, then a new texture will be created each time by the CCTextureCache.
  @since v0.99.0
  */
 +(id) spriteWithCGImage: (CGImageRef)image key:(NSString*)key;
-
-
-/** Creates an sprite with an CCBatchNode and a rect
- */
-+(id) spriteWithBatchNode:(CCSpriteBatchNode*)batchNode rect:(CGRect)rect;
 
 /** Initializes an sprite with a texture.
  The rect used will be the size of the texture.
@@ -214,7 +209,7 @@
  IMPORTANT: This is the designated initializer.
  */
 - (id)initWithTexture:(CCTexture2D *)texture rect:(CGRect)rect rotated:(BOOL)rotated;
- 
+
 
 /** Initializes an sprite with an sprite frame.
  */
@@ -241,18 +236,10 @@
 /** Initializes an sprite with a CGImageRef and a key
  The key is used by the CCTextureCache to know if a texture was already created with this CGImage.
  For example, a valid key is: @"sprite_frame_01".
- If key is nil, then a new texture will be created each time by the CCTextureCache. 
+ If key is nil, then a new texture will be created each time by the CCTextureCache.
  @since v0.99.0
  */
 -(id) initWithCGImage:(CGImageRef)image key:(NSString*)key;
-
-/** Initializes an sprite with an CCSpriteBatchNode and a rect in points
- */
--(id) initWithBatchNode:(CCSpriteBatchNode*)batchNode rect:(CGRect)rect;
-
-/** Initializes an sprite with an CCSpriteBatchNode and a rect in points, optionally rotated.
- */
--(id) initWithBatchNode:(CCSpriteBatchNode*)batchNode rect:(CGRect)rect rotated:(BOOL)rotated;
 
 #pragma mark CCSprite - BatchNode methods
 
@@ -262,7 +249,7 @@
 
 #pragma mark CCSprite - Texture methods
 
-/** set the texture rect of the CCSprite in points. 
+/** set the texture rect of the CCSprite in points.
  It will call setTextureRect:rotated:untrimmedSize with rotated = NO, and utrimmedSize = rect.size.
  */
 -(void) setTextureRect:(CGRect) rect;
@@ -288,7 +275,7 @@
 -(BOOL) isFrameDisplayed:(CCSpriteFrame*)frame;
 
 /** returns the current displayed frame. */
--(CCSpriteFrame*) displayedFrame;
+-(CCSpriteFrame*) displayFrame;
 
 #pragma mark CCSprite - Animation
 

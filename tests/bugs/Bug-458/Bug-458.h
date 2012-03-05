@@ -1,13 +1,8 @@
 #import "cocos2d.h"
-
-@class Menu;
+#import "BaseAppController.h"
 
 //CLASS INTERFACE
-@interface AppController : NSObject <UIApplicationDelegate>
-{
-	UIWindow	*window_;
-	UIViewController *viewController_;
-}
+@interface AppController : BaseAppController
 @end
 
 
